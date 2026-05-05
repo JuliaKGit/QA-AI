@@ -1,0 +1,250 @@
+# Test Plan: Program List Filtering and Display
+
+**Feature:** Program list filtering and display  
+**Actor:** Admin user  
+**Primary UI:** **Programs** page — program **list** showing **Name** and **Description** (and any additional columns the product adds)  
+**Sample programs (concrete data):**
+
+| Name | Description |
+|------|-------------|
+| Web Development 2026 | Cohort covering HTML, CSS, and JavaScript fundamentals. |
+| Informatique & IA - Niveau 2 | Programme avancé en intelligence artificielle et systèmes. |
+| Test Program | Short-lived program used for QA scenarios. |
+
+**Note:** The stakeholder **Description** in the source story mentions duplicate name prevention; that does not match the **Task** or **Acceptance Criteria** (list display and empty state). This plan covers **list display**, **empty state**, and **filtering** where the product provides it (task title includes “filtering”; ACs do not—see **Ambiguities**).
+
+---
+
+## Positive flows
+
+### TC-001
+- **Title:** Programs page lists every program’s **Name** and **Description**  
+- **Preconditions:** Logged in as admin; at least three programs exist: **Web Development 2026**, **Informatique & IA - Niveau 2**, and **Test Program**, with the **Description** values from the table above.  
+- **Steps:**
+  1. Navigate to the **Programs** page (via main nav or deep link per product).
+  2. For each seeded program, locate its row or card in the list.
+  3. Verify visible text for **Name** and **Description** matches the stored values (allowing for documented truncation with “show more” if applicable).
+- **Expected result:** The list shows all existing programs; each item displays **Name** and **Description** (or full **Description** via expand control if that is the design); no program is missing from the default unfiltered view.  
+- **Priority:** High  
+- **Maps to AC:** Display program list with key details  
+
+---
+
+### TC-002
+- **Title:** Empty state shows clear message and prompt to create the first program  
+- **Preconditions:** No programs exist in the environment (fresh tenant, data reset, or delete-all in non-production); admin user.  
+- **Steps:**
+  1. Navigate to the **Programs** page.
+  2. Read the empty-state **message** and any **call-to-action** (e.g. button or link).
+- **Expected result:** User sees messaging that **no programs have been created** (or equivalent plain-language copy); user sees an explicit **prompt to create the first program** (e.g. **Create program**, **Add program**, or link to creation flow); list area is not a blank white gap with no explanation.  
+- **Priority:** High  
+- **Maps to AC:** Empty state when no programs exist  
+
+---
+
+### TC-003
+- **Title:** Create-first-program prompt routes to program creation with working form  
+- **Preconditions:** Same as TC-002 (no programs).  
+- **Steps:**
+  1. From empty state, activate the **create first program** control.
+  2. Confirm the **program creation** form opens (or correct step in wizard).
+- **Expected result:** Navigation succeeds; user can enter **Name** and **Description** and complete create per existing create-story tests.  
+- **Priority:** Medium  
+
+---
+
+### TC-004
+- **Title:** After creating the first program from empty state, list replaces empty state with row showing **Name** and **Description**  
+- **Preconditions:** Empty state (TC-002); user initiates create from prompt.  
+- **Steps:**
+  1. Create program **Name** `Data Literacy 2026`, **Description** `Foundations of data analysis for business users.`
+  2. Submit; land on or return to **Programs** page.
+- **Expected result:** Empty state is gone; list shows **Data Literacy 2026** with matching **Description**.  
+- **Priority:** High  
+
+---
+
+### TC-005
+- **Title:** Filter or search by program **Name** narrows the list (when filter UI exists)  
+- **Preconditions:** Programs **Web Development 2026**, **Informatique & IA - Niveau 2**, **Test Program** exist; **Programs** page includes a **search** box, **Name** filter, or equivalent. *If no filter UI ships, mark this case **N/A** and track as product gap vs task title.*  
+- **Steps:**
+  1. Open **Programs** page.
+  2. Enter filter text `Web Development` (or apply filter matching that substring).
+  3. Observe rows.
+- **Expected result:** Only programs whose **Name** matches the filter rule appear (at minimum **Web Development 2026**); other names hidden until filter cleared.  
+- **Priority:** Medium  
+
+---
+
+### TC-006
+- **Title:** Clearing filters restores full program list  
+- **Preconditions:** Same as TC-005; filter applied so fewer than all programs show.  
+- **Steps:**
+  1. Clear search text or reset filter control.
+- **Expected result:** All programs from TC-001 set visible again (subject to pagination rules).  
+- **Priority:** Medium  
+
+---
+
+## Negative flows
+
+### TC-007
+- **Title:** List does not show programs belonging to another tenant or unauthorized scope  
+- **Preconditions:** Multi-tenant or restricted data setup if applicable; admin for Tenant A only.  
+- **Steps:**
+  1. Navigate to **Programs** as Tenant A admin.
+  2. Verify no **Name** from Tenant B’s catalog appears.
+- **Expected result:** Only authorized programs visible; no cross-tenant **Description** leakage.  
+- **Priority:** High  
+
+---
+
+### TC-008
+- **Title:** Non-admin does not see the admin program list (or sees read-only subset per policy)  
+- **Preconditions:** Non-admin user; at least one program exists.  
+- **Steps:**
+  1. Navigate to **Programs** (or hit URL directly).
+- **Expected result:** Access denied, redirect, or role-appropriate view **without** exposing full admin list if policy forbids; not a silent empty list that hides data errors.  
+- **Priority:** High  
+
+---
+
+### TC-009
+- **Title:** Stale list does not permanently hide a newly created program  
+- **Preconditions:** **Programs** page open in tab A; tab B creates **Name** `Parallel Add 2026`, **Description** `Created in second tab.`  
+- **Steps:**
+  1. Refresh tab A or use product “refresh” if any.
+- **Expected result:** **Parallel Add 2026** appears after refresh or via live update; user is not misled into thinking create failed.  
+- **Priority:** Medium  
+
+---
+
+### TC-010
+- **Title:** Filter with no matches does not crash and explains zero results  
+- **Preconditions:** Filter UI exists; programs exist.  
+- **Steps:**
+  1. Apply filter string `ZZZ_NO_MATCH_999`.
+- **Expected result:** Zero rows with clear “no results” or similar; option to clear filter; not an error page.  
+- **Priority:** Medium  
+
+---
+
+### TC-011
+- **Title:** XSS or HTML in **Description** does not execute in the list  
+- **Preconditions:** Program exists with **Description** `Safe text <img src=x onerror=alert(1)>` in a test environment only.  
+- **Steps:**
+  1. Open **Programs** list.
+- **Expected result:** Content rendered as text or sanitized; no script execution; **Name**/`Description` still readable.  
+- **Priority:** High  
+
+---
+
+## Edge cases
+
+### TC-012
+- **Title:** **Name** and **Description** with special characters and accents display correctly  
+- **Preconditions:** Program **Informatique & IA - Niveau 2** with full **Description** as in the table above.  
+- **Steps:**
+  1. Open **Programs** page.
+- **Expected result:** Ampersand, hyphen, and accented characters render correctly (no mojibake).  
+- **Priority:** Medium  
+
+---
+
+### TC-013
+- **Title:** Very long **Description** is handled without breaking layout  
+- **Preconditions:** Program **Web Development 2026** with **Description** set to 5000-character string (repeat `Line validation.\n` to fill in test env).  
+- **Steps:**
+  1. View **Programs** list.
+- **Expected result:** Layout remains usable: truncation with expand, tooltip, or detail drawer per design; horizontal scroll not the only escape hatch on desktop.  
+- **Priority:** Medium  
+
+---
+
+### TC-014
+- **Title:** Very long **Name** is handled without overlapping adjacent columns  
+- **Preconditions:** Program with **Name** of 150 characters: prefix `Long Name Test — ` then repeat `ABCDEF` to reach length.  
+- **Steps:**
+  1. View list.
+- **Expected result:** **Name** wraps, truncates with ellipsis, or uses title attribute—consistent and readable.  
+- **Priority:** Low  
+
+---
+
+### TC-015
+- **Title:** Empty or whitespace-only **Description** displays predictably  
+- **Preconditions:** Program **Test Program** saved with **Description** empty or `   ` if system allows.  
+- **Steps:**
+  1. View **Programs** list.
+- **Expected result:** Shows empty indicator (em dash, “—”, “No description”) or blank cell per spec; not duplicate of **Name** by mistake.  
+- **Priority:** Medium  
+
+---
+
+### TC-016
+- **Title:** Duplicate **Name** rows (if product allows) remain distinguishable in the list  
+- **Preconditions:** Only if duplicates allowed: two rows **Test Program** with different **Description** or ids.  
+- **Steps:**
+  1. Inspect list for both rows.
+- **Expected result:** User can tell rows apart (secondary column, id, date) or product blocks duplicates—document rule.  
+- **Priority:** Low  
+
+---
+
+### TC-017
+- **Title:** Large number of programs — pagination or virtualization works  
+- **Preconditions:** 50+ programs seeded with unique **Name** pattern `Bulk Program 001` … `Bulk Program 050`.  
+- **Steps:**
+  1. Open **Programs**; page through or scroll.
+- **Expected result:** Performance acceptable; no duplicate rows across pages; totals match if shown.  
+- **Priority:** Medium  
+
+---
+
+### TC-018
+- **Title:** Sort order is stable and documented (e.g. by **Name** ascending)  
+- **Preconditions:** Multiple programs; optional **sort** control on column headers.  
+- **Steps:**
+  1. Note order of **Web Development 2026**, **Informatique & IA - Niveau 2**, **Test Program**.
+  2. If sortable, sort by **Name** ascending and descending.
+- **Expected result:** Order matches product rule; no flicker or inconsistent order on refresh.  
+- **Priority:** Low  
+
+---
+
+### TC-019
+- **Title:** Unicode and emoji in **Name** / **Description** display in the list  
+- **Preconditions:** Program **Name** `Café Program 🎓`, **Description** `中文 / العربية sample.`  
+- **Steps:**
+  1. View **Programs** page.
+- **Expected result:** Characters visible; alignment and font fallback acceptable.  
+- **Priority:** Low  
+
+---
+
+## Traceability summary
+
+| Acceptance criterion | Test case IDs |
+|----------------------|---------------|
+| List shows each program’s **name** and **description** | TC-001, TC-004, TC-012–TC-016, TC-019 |
+| No programs → message + create-first prompt | TC-002, TC-003 |
+| Filtering (task title, not in AC) | TC-005, TC-006, TC-010 |
+
+---
+
+## Ambiguities and gaps in the acceptance criteria
+
+1. **Task vs AC:** The task is **“Program list filtering and display”** but **Acceptance Criteria** only specify **display** and **empty state**—no filter/search/sort requirements. Filtering cases (TC-005, TC-006, TC-010) need product confirmation or are **N/A**.  
+2. **Story Description** again references duplicate name prevention; it does not match list/empty-state ACs.  
+3. **“Key details”** beyond **Name** and **Description** are not defined (dates, status, enrollment count, actions column).  
+4. **Truncation:** No rule for long **Name**/**Description** in the list vs full text elsewhere.  
+5. **Empty state copy:** Exact strings for “no programs” and “create first” are not specified; localization not mentioned.  
+6. **Pagination / search debounce / loading states** not in ACs.  
+7. **Mobile / responsive** layout for list not specified.  
+8. **Accessibility:** Table semantics, column headers, and empty-state announcements for screen readers not specified.  
+9. **Real-time updates** when another user adds a program not specified.  
+10. **Permissions edge cases:** Support or read-only roles viewing partial fields not covered.  
+
+---
+
+*Update TC-005–TC-006 and TC-010 when filter control names and behaviors are finalized in the UI spec.*

@@ -1,0 +1,243 @@
+# Test Plan: Delete Program with Confirmation
+
+**Feature:** Delete program with confirmation  
+**Actor:** Admin user  
+**Primary UI:** **Programs** page (or equivalent program list); row actions include **delete** icon; **confirmation** dialog with **confirm** and **Cancel** (or equivalent labels such as **Delete** / **Cancel**)  
+**Reference program from acceptance criteria:** **Test Program**  
+
+**Note:** The stakeholder **Description** in the source story mentions duplicate program names; that is inconsistent with the **Task** and **Acceptance Criteria** (deletion). This test plan covers **deletion with confirmation** only.
+
+---
+
+## Positive flows
+
+### TC-001
+- **Title:** Confirming delete removes **Test Program** from the program list  
+- **Preconditions:** Logged in as admin; on **Programs** page; program **Test Program** exists and is visible in the list; no filters hide that row.  
+- **Steps:**
+  1. Locate the row for **Test Program**.
+  2. Click the **delete** icon for **Test Program**.
+  3. Verify a **confirmation** dialog appears (title/body may reference **Test Program** or generic delete text per product).
+  4. Click the control that **confirms** deletion (e.g. **Delete**, **Confirm**, **Yes**—use the actual primary destructive action label).
+  5. Observe the **Programs** list.
+- **Expected result:** **Test Program** is no longer shown in the list (or count decreases accordingly); success feedback may appear per product; no error indicating delete failed.  
+- **Priority:** High  
+- **Maps to AC:** Delete program with confirmation  
+
+---
+
+### TC-002
+- **Title:** Canceling delete leaves the program in the list unchanged  
+- **Preconditions:** Admin on **Programs** page; program **Test Program** exists.  
+- **Steps:**
+  1. Click the **delete** icon for **Test Program**.
+  2. When the **confirmation** dialog is visible, click **Cancel** (or secondary dismiss action).
+  3. Observe the **Programs** list.
+- **Expected result:** **Test Program** still appears in the list with the same **Name** and visible attributes as before; no success toast for deletion.  
+- **Priority:** High  
+- **Maps to AC:** Cancel program deletion  
+
+---
+
+### TC-003
+- **Title:** Confirmation dialog shows before any destructive API completes  
+- **Preconditions:** **Test Program** exists; browser **Network** tab open (optional).  
+- **Steps:**
+  1. Click **delete** for **Test Program**.
+  2. Before confirming, inspect whether a delete request has already succeeded (network or backend log if available).
+- **Expected result:** Program is not removed until **confirm** is clicked; if a request fires early, behavior must still require explicit confirmation or is a **defect** against AC.  
+- **Priority:** High  
+
+---
+
+### TC-004
+- **Title:** After successful delete, recreating a program with the same **Name** is allowed unless business rules forbid reuse  
+- **Preconditions:** **Test Program** deleted via TC-001 flow; admin can create programs.  
+- **Steps:**
+  1. Create a new program with **Name** `Test Program` and valid **Description** e.g. `Recreated after delete.`
+- **Expected result:** Product rule satisfied: either creation succeeds (name released) or clear message if names are permanently reserved—**document expected rule**.  
+- **Priority:** Medium  
+
+---
+
+## Negative flows
+
+### TC-005
+- **Title:** Deleting one program does not remove a different program  
+- **Preconditions:** **Test Program** and **Web Development 2026** both exist on the list.  
+- **Steps:**
+  1. Click **delete** on **Test Program** only.
+  2. Confirm deletion.
+  3. Verify **Web Development 2026** still exists.
+- **Expected result:** Only **Test Program** is removed; **Web Development 2026** row unchanged.  
+- **Priority:** High  
+
+---
+
+### TC-006
+- **Title:** Failed delete (server error) does not remove the program from the list  
+- **Preconditions:** **Test Program** exists; ability to simulate API failure (offline, mock 500, or test environment).  
+- **Steps:**
+  1. Click **delete** for **Test Program**; confirm in dialog.
+  2. When failure occurs, observe list and error UI.
+- **Expected result:** User sees error; **Test Program** remains in list; optional retry per product; no silent disappearance.  
+- **Priority:** High  
+
+---
+
+### TC-007
+- **Title:** Non-admin cannot delete programs via UI or API  
+- **Preconditions:** Non-admin user; **Test Program** exists.  
+- **Steps:**
+  1. Open **Programs** as non-admin; attempt **delete** if visible.
+  2. If **delete** is hidden, attempt direct API delete with non-admin token if applicable.
+- **Expected result:** Action denied or unavailable; **Test Program** remains.  
+- **Priority:** High  
+
+---
+
+### TC-008
+- **Title:** Double confirmation or double submit does not cause inconsistent UI  
+- **Preconditions:** **Test Program** exists; slow network or double-click on confirm.  
+- **Steps:**
+  1. Open delete confirmation; click **confirm** twice rapidly (if still possible).
+- **Expected result:** Single delete outcome; no duplicate error spam; list ends in consistent state (program gone once).  
+- **Priority:** Medium  
+
+---
+
+### TC-009
+- **Title:** Misleading success message must not appear when delete is canceled  
+- **Preconditions:** **Test Program** exists.  
+- **Steps:**
+  1. Open **delete** → **Cancel** on confirmation.
+- **Expected result:** No “Program deleted” (or equivalent) success toast.  
+- **Priority:** Medium  
+
+---
+
+### TC-010
+- **Title:** Concurrent users: delete by one admin does not corrupt another’s session list without refresh  
+- **Preconditions:** Two admin sessions viewing **Programs**; **Test Program** exists.  
+- **Steps:**
+  1. Session A confirms delete of **Test Program**.
+  2. Session B observes list without refresh, then refreshes.
+- **Expected result:** Session B eventually reflects removal (refresh or live update per product); no phantom row that still performs destructive actions on wrong id.  
+- **Priority:** Medium  
+
+---
+
+## Edge cases
+
+### TC-011
+- **Title:** Program **Name** with special characters shows correctly in confirmation and deletes the intended row  
+- **Preconditions:** Program **Name** is `Informatique & IA - Niveau 2` (exists in list).  
+- **Steps:**
+  1. Click **delete** for that row; read dialog text.
+  2. **Confirm**; verify list.
+- **Expected result:** Dialog does not corrupt or omit the **Name**; correct program removed; HTML entities displayed as text if escaped.  
+- **Priority:** Medium  
+
+---
+
+### TC-012
+- **Title:** Very long **Name** is readable in confirmation dialog (wrap/scroll without hiding actions)  
+- **Preconditions:** Program whose **Name** is 200+ characters, e.g. start with `Long Name Test — ` and pad with `ABCDEFG` repeats to exceed typical dialog width.  
+- **Steps:**
+  1. Click **delete**; verify **Cancel** and **confirm** remain reachable.
+  2. **Cancel** to avoid delete unless testing full flow in disposable env.
+- **Expected result:** Usable dialog; tester can confirm or cancel without trapping focus.  
+- **Priority:** Low  
+
+---
+
+### TC-013
+- **Title:** Dismissing dialog via **Esc** or overlay click behaves like **Cancel** (program retained)  
+- **Preconditions:** **Test Program** exists; product supports **Esc** or click-outside dismiss.  
+- **Steps:**
+  1. Click **delete**; press **Esc** or click outside modal (if allowed).
+  2. Check list.
+- **Expected result:** **Test Program** still in list; if dismiss is not supported, document actual behavior vs expectation.  
+- **Priority:** Medium  
+
+---
+
+### TC-014
+- **Title:** Two programs with the same display **Name** (if allowed) — delete targets correct row  
+- **Preconditions:** Only applicable if product allows duplicate **Name**; two rows show **Test Program** with different internal ids.  
+- **Steps:**
+  1. Click **delete** on one specific row (note position or secondary identifier if shown).
+  2. **Confirm**; verify exactly one row removed.
+- **Expected result:** Correct instance deleted; remaining duplicate **Name** still listed once.  
+- **Priority:** Low  
+
+---
+
+### TC-015
+- **Title:** Delete last program on page updates empty state or pagination  
+- **Preconditions:** Only **Test Program** exists (or delete until one remains then delete it).  
+- **Steps:**
+  1. Confirm delete of last program.
+- **Expected result:** List shows empty state or “no programs” message; no broken pagination or error page.  
+- **Priority:** Medium  
+
+---
+
+### TC-016
+- **Title:** Keyboard-only user can open confirmation, cancel, and confirm  
+- **Preconditions:** **Test Program** exists; keyboard navigation available.  
+- **Steps:**
+  1. Tab to **delete** control; activate with **Enter** or **Space** per control type.
+  2. Tab to **Cancel** and activate; verify program remains.
+  3. Repeat; tab to **confirm** and activate; verify program removed.
+- **Expected result:** Focus order logical; focus trap in dialog until dismissed; actions match mouse behavior.  
+- **Priority:** Medium  
+
+---
+
+### TC-017
+- **Title:** Soft delete vs hard delete — list and recreate behavior match product definition  
+- **Preconditions:** Knowledge of whether delete is soft (archived) or hard (purged).  
+- **Steps:**
+  1. Delete **Test Program** with confirmation.
+  2. Check admin “archived” view or database/API if available.
+- **Expected result:** Documented behavior: hidden from default list vs still blocking unique **Name**; aligns with TC-004.  
+- **Priority:** Low  
+
+---
+
+### TC-018
+- **Title:** Program referenced elsewhere (e.g. cohorts, courses) — delete blocked or cascades per rules  
+- **Preconditions:** **Test Program** linked to dependent data if product has relations.  
+- **Steps:**
+  1. Attempt delete with confirmation.
+- **Expected result:** Either deletion blocked with clear reason or cascade defined; no orphaned broken references without warning.  
+- **Priority:** High  
+
+---
+
+## Traceability summary
+
+| Acceptance criterion | Test case IDs |
+|----------------------|---------------|
+| Delete icon → confirmation → confirm → **Test Program** removed from list | TC-001, TC-003, TC-005 |
+| Delete icon → confirmation → **Cancel** → program still in list | TC-002, TC-009 |
+
+---
+
+## Ambiguities and gaps in the acceptance criteria
+
+1. **Description mismatch:** The user story **Description** text describes duplicate name prevention, not deletion; alignment with product management is needed.  
+2. **Dialog copy:** Exact wording, whether **Test Program** **Name** must appear in the dialog, and confirm button label are unspecified.  
+3. **Confirm control:** AC says “confirm deletion” but not the control name (**Delete** vs **OK** vs **Yes**); tests assume a single primary destructive confirm action.  
+4. **Soft vs hard delete:** AC only says “removed from the program list,” not whether data is purged or recoverable (TC-017, TC-018).  
+5. **Dependencies:** No AC for programs linked to enrollments, modules, or other entities (TC-018).  
+6. **Cancel paths:** Only **Cancel** is named; **Esc**, overlay click, and browser **Back** during dialog are not specified (TC-013).  
+7. **Accessibility:** Focus management and screen reader announcements are not in ACs (TC-016).  
+8. **Audit:** No requirement to log who deleted what and when.  
+9. **Undo:** No mention of undo or trash recovery.  
+10. **Filters and pagination:** If **Test Program** is on page 2 or filtered out, AC does not define expected visibility after delete.  
+
+---
+
+*Adjust field labels (**Programs**, **delete** icon, dialog buttons) to match the live UI.*
