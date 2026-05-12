@@ -1,0 +1,296 @@
+# Test Plan: Create New Academic Program
+
+**Feature:** Create new academic program  
+**Actor:** Admin user  
+**Primary UI:** Programs page → "+ New Program" button → creation modal/form with **Create** button  
+**Fields referenced in acceptance criteria:** **Program Name**, **Description**  
+**Sample values used in ACs:** Program Name = `Web Development 2026`; Description = `Full-stack web development program`  
+
+---
+
+## Positive Flows
+
+### TC-001
+- **Title:** Program creation form displays with correct fields after clicking "+ New Program"  
+- **Preconditions:** Logged in as admin; on the **Programs** page.  
+- **Steps:**
+  1. Click the **+ New Program** button.
+  2. Observe the form/modal that appears.
+- **Expected result:** A program creation form is displayed containing at minimum the fields **Program Name** and **Description**; the **Create** button is visible; no pre-filled values (fields are empty).  
+- **Priority:** High  
+- **Maps to AC:** Navigate to program creation form  
+
+---
+
+### TC-002
+- **Title:** Successfully creating a program closes the modal and shows the new program in the list  
+- **Preconditions:** Logged in as admin; on the **Programs** page; program creation form is open.  
+- **Steps:**
+  1. Enter `Web Development 2026` in the **Program Name** field.
+  2. Enter `Full-stack web development program` in the **Description** field.
+  3. Click **Create**.
+- **Expected result:** The modal closes; the **Programs** list immediately displays a row with **Program Name** `Web Development 2026`; no page refresh required.  
+- **Priority:** High  
+- **Maps to AC:** Successfully create a program  
+
+---
+
+### TC-003
+- **Title:** Create button is disabled when Program Name is empty  
+- **Preconditions:** Logged in as admin; program creation form is open; **Program Name** field is empty.  
+- **Steps:**
+  1. Leave the **Program Name** field empty.
+  2. Optionally fill in **Description** with `Some description`.
+  3. Observe the **Create** button state.
+- **Expected result:** The **Create** button is disabled (greyed out / not clickable); no form submission occurs.  
+- **Priority:** High  
+- **Maps to AC:** Validation prevents empty program name  
+
+---
+
+### TC-004
+- **Title:** Creating a program with only Program Name (no Description) succeeds  
+- **Preconditions:** Logged in as admin; program creation form is open.  
+- **Steps:**
+  1. Enter `Data Analytics 2026` in **Program Name**.
+  2. Leave **Description** empty.
+  3. Click **Create**.
+- **Expected result:** Program is created successfully; modal closes; `Data Analytics 2026` appears in the list (Description is optional per AC—no validation prevents save).  
+- **Priority:** Medium  
+
+---
+
+### TC-005
+- **Title:** Newly created program persists after page refresh  
+- **Preconditions:** Program `Web Development 2026` was just created via TC-002.  
+- **Steps:**
+  1. Refresh the browser (F5).
+  2. Navigate to the **Programs** page.
+  3. Locate `Web Development 2026` in the list.
+- **Expected result:** The program is still visible with correct **Program Name** and **Description**; data is persisted to the backend.  
+- **Priority:** High  
+
+---
+
+### TC-006
+- **Title:** Create button becomes enabled once a valid Program Name is entered  
+- **Preconditions:** Program creation form is open; **Program Name** is initially empty (Create button disabled per TC-003).  
+- **Steps:**
+  1. Type `Cybersecurity Fundamentals` in **Program Name**.
+  2. Observe the **Create** button.
+- **Expected result:** The **Create** button transitions from disabled to enabled as soon as a non-empty value is present in **Program Name**.  
+- **Priority:** Medium  
+
+---
+
+## Negative Flows
+
+### TC-007
+- **Title:** Non-admin user cannot access the "+ New Program" button  
+- **Preconditions:** Logged in as a non-admin user (e.g., instructor or student role); on the **Programs** page.  
+- **Steps:**
+  1. Observe the **Programs** page toolbar/header.
+  2. Attempt to find or click **+ New Program**.
+- **Expected result:** The **+ New Program** button is either hidden or disabled; direct URL/API access to the creation endpoint returns 403 Forbidden.  
+- **Priority:** High  
+
+---
+
+### TC-008
+- **Title:** Submitting a duplicate Program Name is handled without silent data corruption  
+- **Preconditions:** Program `Web Development 2026` already exists in the list; creation form is open.  
+- **Steps:**
+  1. Enter `Web Development 2026` in **Program Name**.
+  2. Enter `Duplicate test` in **Description**.
+  3. Click **Create**.
+- **Expected result:** Either the system prevents creation with a validation message (e.g., "A program with this name already exists") **or** allows duplicates if the business rule permits—in either case the existing program is not altered. Document the actual behavior against the business requirement.  
+- **Priority:** High  
+
+---
+
+### TC-009
+- **Title:** Network failure during creation shows an error and does not corrupt data  
+- **Preconditions:** Program creation form is open; network throttling or API error simulation is available.  
+- **Steps:**
+  1. Fill in **Program Name** with `Network Failure Test`.
+  2. Disconnect network or mock a 500 server response.
+  3. Click **Create**.
+- **Expected result:** An error message is displayed to the user; modal remains open (or re-appears) with the entered data intact; the program does **not** appear in the list; no partial record created on the backend.  
+- **Priority:** High  
+
+---
+
+### TC-010
+- **Title:** HTML/script injection in Program Name does not execute  
+- **Preconditions:** Program creation form is open.  
+- **Steps:**
+  1. Enter `<script>alert('XSS')</script>` in **Program Name**.
+  2. Enter `<img onerror=alert(1) src=x>` in **Description**.
+  3. Click **Create** (if allowed by validation).
+  4. View the program list and open the program details.
+- **Expected result:** No script execution occurs; values are rendered as plain text (escaped) in the list and any detail views; no alert dialogs or injected HTML elements.  
+- **Priority:** High  
+
+---
+
+### TC-011
+- **Title:** Closing the modal without clicking Create does not save a program  
+- **Preconditions:** Program creation form is open; user has typed `Abandoned Program` in **Program Name**.  
+- **Steps:**
+  1. Click **Cancel**, press **Esc**, or click the modal backdrop/X button (whichever dismiss mechanism exists).
+  2. Observe the **Programs** list.
+- **Expected result:** Modal closes; `Abandoned Program` does **not** appear in the list; no backend record created.  
+- **Priority:** Medium  
+
+---
+
+### TC-012
+- **Title:** Rapid double-click on Create does not produce duplicate programs  
+- **Preconditions:** Program creation form filled with **Program Name** = `Double Click Test`.  
+- **Steps:**
+  1. Rapidly double-click the **Create** button.
+  2. Wait for any API responses; observe the list.
+- **Expected result:** Only one program `Double Click Test` appears in the list; button is disabled after first click or duplicate requests are deduplicated on the server.  
+- **Priority:** Medium  
+
+---
+
+## Edge Cases
+
+### TC-013
+- **Title:** Program Name at maximum allowed length saves and displays correctly  
+- **Preconditions:** Known maximum length for **Program Name** (e.g., 100 or 255 characters—use actual application spec); construct a string of exactly that length ending with recognizable characters `...MAX`.  
+- **Steps:**
+  1. Open program creation form.
+  2. Enter the max-length string in **Program Name**.
+  3. Enter `Max length name test` in **Description**.
+  4. Click **Create**.
+  5. Verify the program in the list and reopen to view details.
+- **Expected result:** Full string is stored and displayed without truncation; no server error; list layout remains intact.  
+- **Priority:** Medium  
+
+---
+
+### TC-014
+- **Title:** Program Name exceeding maximum length is rejected or truncated per rules  
+- **Preconditions:** Same max length as TC-013.  
+- **Steps:**
+  1. Attempt to enter max length + 1 character in **Program Name**.
+  2. Observe field behavior and attempt **Create**.
+- **Expected result:** Either the field prevents input beyond the limit (character count enforcement) **or** validation displays an error on submit; no corrupted data saved.  
+- **Priority:** Medium  
+
+---
+
+### TC-015
+- **Title:** Single-character Program Name is accepted  
+- **Preconditions:** Program creation form is open.  
+- **Steps:**
+  1. Enter `A` in **Program Name**.
+  2. Click **Create**.
+- **Expected result:** Program `A` is created successfully and visible in the list (minimum length = 1 character unless a longer minimum is specified).  
+- **Priority:** Low  
+
+---
+
+### TC-016
+- **Title:** Whitespace-only Program Name does not enable the Create button  
+- **Preconditions:** Program creation form is open.  
+- **Steps:**
+  1. Enter `   ` (three spaces) in **Program Name**.
+  2. Observe the **Create** button.
+- **Expected result:** The **Create** button remains disabled (spaces-only treated as empty) **or** validation error is shown on submit; no program with a blank name is created.  
+- **Priority:** Medium  
+
+---
+
+### TC-017
+- **Title:** Leading and trailing spaces in Program Name are trimmed  
+- **Preconditions:** Program creation form is open.  
+- **Steps:**
+  1. Enter `   Web Development 2026   ` (leading and trailing spaces) in **Program Name**.
+  2. Click **Create**.
+  3. View the program in the list and reopen for editing.
+- **Expected result:** The stored Program Name is `Web Development 2026` (trimmed); no leading/trailing whitespace visible in the list or edit form.  
+- **Priority:** Low  
+
+---
+
+### TC-018
+- **Title:** Special characters and Unicode in Program Name and Description persist correctly  
+- **Preconditions:** Program creation form is open.  
+- **Steps:**
+  1. Enter `Développement Web 2026 — "Été" & <Hiver> 日本語` in **Program Name**.
+  2. Enter `Symbols: &<>"/'; Emoji: 🎓📚; Accents: àéîõü` in **Description**.
+  3. Click **Create**.
+  4. View the program in the list and reopen for editing.
+- **Expected result:** All characters are stored and displayed correctly; no encoding issues, mojibake, or HTML entity escaping visible to the user; emojis render properly.  
+- **Priority:** Medium  
+
+---
+
+### TC-019
+- **Title:** Very long Description (multi-paragraph) saves without truncation  
+- **Preconditions:** Program creation form is open; max length for Description is known or assumed (e.g., 2000 characters).  
+- **Steps:**
+  1. Enter `Long Description Test` in **Program Name**.
+  2. Paste a multi-paragraph description of 1500+ characters in **Description** (include line breaks if the field supports them).
+  3. Click **Create**.
+  4. Reopen the program to verify.
+- **Expected result:** Full description text persisted; line breaks preserved if multiline field; UI layout handles long text gracefully (scrollbar or expand, no overflow breaking the page).  
+- **Priority:** Low  
+
+---
+
+### TC-020
+- **Title:** Create button re-disables if Program Name is cleared after being filled  
+- **Preconditions:** Program creation form open; **Program Name** currently contains `Temp Value` (Create button enabled).  
+- **Steps:**
+  1. Select all text in **Program Name** and delete it (field now empty).
+  2. Observe the **Create** button.
+- **Expected result:** The **Create** button returns to disabled state; real-time validation reflects the empty state.  
+- **Priority:** Medium  
+
+---
+
+### TC-021
+- **Title:** Form is accessible via keyboard navigation  
+- **Preconditions:** Logged in as admin; on the **Programs** page.  
+- **Steps:**
+  1. Use **Tab** to focus the **+ New Program** button; press **Enter**.
+  2. Use **Tab** to navigate through form fields (**Program Name** → **Description** → **Create**).
+  3. Fill in fields using keyboard only; press **Enter** on **Create**.
+- **Expected result:** All interactive elements are reachable via Tab; focus order is logical; form can be submitted entirely via keyboard; focus trap keeps user within the modal.  
+- **Priority:** Low  
+
+---
+
+## Traceability Summary
+
+| Acceptance Criterion | Test Case IDs |
+|---|---|
+| Navigate to program creation form (fields visible) | TC-001 |
+| Successfully create a program (modal closes, list updates) | TC-002, TC-005 |
+| Validation prevents empty program name (Create disabled) | TC-003, TC-006, TC-016, TC-020 |
+
+---
+
+## Ambiguities and Gaps in the Acceptance Criteria
+
+1. **Description required or optional?** The ACs show Description being filled in the success scenario but do not state whether it is a required field. TC-004 assumes it is optional—needs confirmation.
+2. **Uniqueness constraint on Program Name:** No AC specifies whether duplicate program names are allowed. TC-008 needs a business decision.
+3. **Maximum field lengths:** No specification for maximum character limits on **Program Name** or **Description**. TC-013/TC-014/TC-019 assume limits exist—actual values needed from the spec or database schema.
+4. **Whitespace handling:** ACs do not define behavior for whitespace-only or leading/trailing spaces in **Program Name**. TC-016 and TC-017 need clarification.
+5. **Cancel/dismiss behavior:** No AC covers what happens if the user closes the modal without clicking Create—assumed to discard (TC-011) but not specified.
+6. **Error handling on network or server failure:** No AC describes the expected behavior if the API call fails (TC-009).
+7. **Double submission prevention:** No AC covers rapid repeated clicks on Create (TC-012).
+8. **Role-based access:** The AC states "logged in as admin" but does not specify what happens for non-admin roles (TC-007).
+9. **Modal or page?** The AC mentions "modal closes" for the success scenario, confirming a modal—but the navigation AC does not explicitly state it's a modal vs. a separate page.
+10. **List order after creation:** The AC says the list "shows" the new program but does not specify where (top, bottom, alphabetical order, or creation date order).
+11. **Persistence confirmation:** The AC says the list shows the program but does not explicitly require backend persistence (could theoretically be a client-side-only addition)—TC-005 validates this.
+12. **Accessibility requirements:** No mention of keyboard navigation, screen reader support, or ARIA labels for the modal and form fields.
+13. **Create button behavior with only spaces:** The AC says "leave the Program Name field empty" disables Create, but does not specify if whitespace-only input should be treated the same as empty.
+
+---
+
+*Prepared for QA execution; align maximum field lengths and uniqueness rules with the live application specification when available.*
