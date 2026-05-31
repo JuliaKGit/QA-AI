@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/cleanup.fixture';
+import { extractProgramId, waitForProgramCreate } from '../support/delete-program';
 
 const BASE_URL = 'https://test.didaxis.studio';
 
@@ -32,7 +33,10 @@ test.describe('Create Program', () => {
     await expect(createButton).toBeDisabled();
   });
 
-  test('TC-002: Successfully creating a program closes the modal and shows the new program in the list', async ({ page }) => {
+  test('TC-002: Successfully creating a program closes the modal and shows the new program in the list', async ({
+    page,
+    trackProgram,
+  }) => {
     const uniqueName = `Web Development 2026 ${Date.now()}`;
 
     await page.getByRole('button', { name: '+ New Program' }).click();
@@ -41,7 +45,11 @@ test.describe('Create Program', () => {
 
     await dialog.getByLabel('Program Name').fill(uniqueName);
     await dialog.getByLabel('Description').fill('Full-stack web development program');
+
+    const createResponse = waitForProgramCreate(page);
     await dialog.getByRole('button', { name: 'Create' }).click();
+    const response = await createResponse;
+    trackProgram(extractProgramId(await response.json()));
 
     await expect(dialog).not.toBeVisible();
     await expect(page.getByRole('cell', { name: uniqueName })).toBeVisible();
