@@ -4,3 +4,4 @@ test-results/
 .env
 .playwright-mcp/
 .program-tracker.json
+playwright/.auth/

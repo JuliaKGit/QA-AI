@@ -58,6 +58,15 @@ export function waitForProgramCreate(page: Page): Promise<Response> {
   );
 }
 
+export function waitForProgramDelete(page: Page): Promise<Response> {
+  return page.waitForResponse(
+    (response) =>
+      /\/api\/programs\/[^/]+$/.test(response.url()) &&
+      response.request().method() === 'DELETE' &&
+      response.ok(),
+  );
+}
+
 export async function getAllPrograms(): Promise<Program[]> {
   const response = await fetch(`${getBaseUrl()}/api/programs`, {
     headers: getAuthHeaders(),
