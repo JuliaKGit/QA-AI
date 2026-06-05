@@ -8,6 +8,7 @@ jobs:
     name: Playwright
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    environment: dev1
     container:
       image: mcr.microsoft.com/playwright:v1.59.1-noble
 
@@ -28,7 +29,6 @@ jobs:
         run: npx playwright test ds
         env:
           CI: true
-          # Optional — defaults to https://test.didaxis.studio when unset or empty
           DIDAXIS_URL: ${{ secrets.DIDAXIS_URL }}
           DIDAXIS_EMAIL: ${{ secrets.DIDAXIS_EMAIL }}
           DIDAXIS_PASSWORD: ${{ secrets.DIDAXIS_PASSWORD }}

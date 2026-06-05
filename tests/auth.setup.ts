@@ -4,7 +4,7 @@ import { test as setup, expect } from '@playwright/test';
 
 export const AUTH_FILE = 'playwright/.auth/user.json';
 
-const baseUrl = process.env.DIDAXIS_URL || 'https://test.didaxis.studio';
+const baseUrl = process.env.DIDAXIS_URL;
 
 setup('authenticate', async ({ page }) => {
   await page.goto(`${baseUrl}/login`);
