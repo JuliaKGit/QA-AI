@@ -25,9 +25,10 @@ jobs:
         run: npm ci
 
       - name: Run Didaxis Playwright tests
-        run: npx playwright test tests/ds*.spec.ts
+        run: npx playwright test ds
         env:
           CI: true
+          # Optional — defaults to https://test.didaxis.studio when unset or empty
           DIDAXIS_URL: ${{ secrets.DIDAXIS_URL }}
           DIDAXIS_EMAIL: ${{ secrets.DIDAXIS_EMAIL }}
           DIDAXIS_PASSWORD: ${{ secrets.DIDAXIS_PASSWORD }}

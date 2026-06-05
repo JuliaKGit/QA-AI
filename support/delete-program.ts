@@ -13,7 +13,7 @@ export type DeleteResult = {
 };
 
 function getBaseUrl(): string {
-  return process.env.DIDAXIS_URL ?? 'https://test.didaxis.studio';
+  return process.env.DIDAXIS_URL || 'https://test.didaxis.studio';
 }
 
 function getAuthHeaders(): HeadersInit {

@@ -13,7 +13,7 @@ export default defineConfig({
   reporter: 'html',
   use: {
     trace: 'on-first-retry',
-    baseURL: process.env.DIDAXIS_URL ?? 'https://test.didaxis.studio',
+    baseURL: process.env.DIDAXIS_URL || 'https://test.didaxis.studio',
   },
   projects: [
     {
