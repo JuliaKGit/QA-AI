@@ -14,6 +14,8 @@ export class ProgramsPage {
   readonly subtitle: Locator;
   readonly programTable: Locator;
   readonly semesterHint: Locator;
+  readonly emptyState: Locator;
+  readonly emptyStateCreateButton: Locator;
   readonly nav: AppNavigation;
   readonly newProgramModal: NewProgramModal;
   readonly editProgramModal: EditProgramModal;
@@ -24,6 +26,11 @@ export class ProgramsPage {
     this.subtitle = page.getByText('Manage academic programs and semesters');
     this.programTable = page.getByRole('table');
     this.semesterHint = page.getByText('Select a program to manage semesters');
+    // Empty-state copy shown when the list has no programs. The exact wording is
+    // unspecified in DS-5, so this matches the "no programs" message broadly.
+    this.emptyState = page.getByText(/no programs/i);
+    // Distinct from the modal "Create" submit — this is the empty-state CTA.
+    this.emptyStateCreateButton = page.getByRole('button', { name: 'Create Program' });
     this.nav = new AppNavigation(page);
     this.newProgramModal = new NewProgramModal(page);
     this.editProgramModal = new EditProgramModal(page);
@@ -35,6 +42,16 @@ export class ProgramsPage {
 
   programRowContaining(fragment: string): Locator {
     return this.page.getByRole('row').filter({ hasText: fragment });
+  }
+
+  /** The description text rendered inside a program's row. */
+  programDescription(programName: string, description: string): Locator {
+    return this.programRow(programName).first().getByText(description, { exact: true });
+  }
+
+  /** All cells of a program's row — useful for asserting a clean/empty cell render. */
+  rowCells(programName: string): Locator {
+    return this.programRow(programName).first().getByRole('cell');
   }
 
   editButtonFor(programName: string): Locator {
