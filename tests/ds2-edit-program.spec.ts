@@ -111,8 +111,7 @@ test.describe('Edit Program - Negative Flows', () => {
     await programsPage.editProgramModal.fillDescription('<img onerror=alert(1) src=x>');
     await programsPage.editProgramModal.submitSave();
 
-    const dialogCount = await page.locator('role=alertdialog').count();
-    expect(dialogCount).toBe(0);
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
 
     await expect(programsPage.programRow(xssName).first()).toBeVisible();
   });

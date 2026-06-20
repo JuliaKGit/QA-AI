@@ -122,7 +122,7 @@ test.describe('DS-5 Program List - Edge cases', () => {
     // (no layout crash) when the description is empty.
     await expect(programsPage.rowCells(programName).first()).toBeVisible();
     await expect(programsPage.newProgramButton).toBeVisible();
-    expect(await page.locator('role=alertdialog').count()).toBe(0);
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
   });
 
   test('Special characters in name and description display intact', async ({ page, trackProgram }) => {
@@ -134,7 +134,7 @@ test.describe('DS-5 Program List - Edge cases', () => {
     await expect(programsPage.programRow(programName).first()).toBeVisible();
     await expect(programsPage.programDescription(programName, description)).toBeVisible();
     // Markup in the description must render as plain text, not execute.
-    expect(await page.locator('role=alertdialog').count()).toBe(0);
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
   });
 
   test('Long program name does not break the row layout', async ({ trackProgram }) => {

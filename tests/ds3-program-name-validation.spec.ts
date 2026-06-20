@@ -32,8 +32,7 @@ test.describe('Program Name Validation - Positive Flows', () => {
     const unicodeName = `プログラム "2026" — Test & <Demo> ${ts}`;
     await programsPage.createProgram(unicodeName, undefined, trackProgram);
 
-    const dialogCount = await page.locator('role=alertdialog').count();
-    expect(dialogCount).toBe(0);
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
 
     await expect(programsPage.programRow(unicodeName).first()).toBeVisible();
   });
@@ -152,8 +151,7 @@ test.describe('Program Name Validation - Negative Flows', () => {
     const xssName = `<script>alert("XSS")</script> ${Date.now()}`;
     await programsPage.createProgram(xssName, undefined, trackProgram);
 
-    const dialogCount = await page.locator('role=alertdialog').count();
-    expect(dialogCount).toBe(0);
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
 
     await expect(programsPage.programRow(xssName).first()).toBeVisible();
   });
