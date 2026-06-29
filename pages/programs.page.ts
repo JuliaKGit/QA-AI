@@ -14,6 +14,9 @@ export class ProgramsPage {
   readonly subtitle: Locator;
   readonly programTable: Locator;
   readonly semesterHint: Locator;
+  readonly semesterPanelSubtitle: Locator;
+  readonly newSemesterButton: Locator;
+  readonly noSemestersMessage: Locator;
   readonly emptyState: Locator;
   readonly emptyStateCreateButton: Locator;
   readonly nav: AppNavigation;
@@ -26,6 +29,9 @@ export class ProgramsPage {
     this.subtitle = page.getByText('Manage academic programs and semesters');
     this.programTable = page.getByRole('table');
     this.semesterHint = page.getByText('Select a program to manage semesters');
+    this.semesterPanelSubtitle = page.getByText('Semesters & scheduling config');
+    this.newSemesterButton = page.getByRole('button', { name: '+ Semester' });
+    this.noSemestersMessage = page.getByText('No semesters yet');
     // Empty-state copy shown when the list has no programs. The exact wording is
     // unspecified in DS-5, so this matches the "no programs" message broadly.
     this.emptyState = page.getByText(/no programs/i);
@@ -66,6 +72,17 @@ export class ProgramsPage {
 
   editProgramButton(row: Locator, programName: string): Locator {
     return row.getByRole('button', { name: `Edit ${programName}` });
+  }
+
+  semesterPanelHeading(programName: string): Locator {
+    return this.page.getByRole('heading', { name: programName, level: 4 });
+  }
+
+  async selectProgram(programName: string): Promise<void> {
+    await this.programRow(programName)
+      .first()
+      .getByText(programName, { exact: true })
+      .click();
   }
 
   deleteProgramButton(row: Locator, programName: string): Locator {
