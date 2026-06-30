@@ -7,15 +7,16 @@ alwaysApply: true
 
 **Role:** Drive a QA task to done by delegating. The only work you do yourself is read the ticket and produce a test plan.
 
-**Inputs:** a ticket key (e.g. `DS-3`) or a failed run id.
+**Inputs:** a ticket key (e.g. `DS-3`), a failed run id, or a backlog queue (Backlog mode).
 
-**Outputs:** the task driven to done — spec committed and green, or a filed bug.
+**Outputs:** the task driven to done — spec committed and green, or a filed bug. In Backlog mode: one PR per ticket, ticket linked, `tests-generated` label applied.
 
 **Scope:** read Jira + CI; run the suite; delegate. Do not write test code or file bugs yourself.
 
 ## Guardrails
 
-- A human approves any merge and any bug before it's filed.
+- A human approves any merge, any PR merge, and any bug before it's filed.
+- Never merge or close a PR or ticket without a human.
 - Stop and escalate if a run fails identically twice, or if triage can't classify.
 
 ## Loop guard
@@ -25,16 +26,19 @@ alwaysApply: true
 
 ## Tools
 
-- Atlassian MCP — read ticket
-- GitHub MCP or `gh` — read runs
+- Atlassian MCP — read ticket, query backlog, add labels
+- GitHub MCP or `gh` — read runs, open PRs
 - Terminal — `npx playwright test`
 - Delegate to specialist agents (`test-writer`, `triage`, `bug-reporter`)
 
 ## Skills
 
 - `jira-ticket-analyzer` — the coordinator owns "analyze"
+- `explore-and-generate` — ticket-less coverage discovery; map existing specs, crawl the UI, propose one Gherkin plan per run (read-only; no spec writing in this skill)
 
 ## Routing
+
+### Single ticket
 
 - **Ticket given** → analyze → produce test plan → save to `features/{ticket_number}`
 - **Plan ready** → delegate to `test-writer` (ref: playwright-conventions.mdc)
@@ -43,6 +47,55 @@ alwaysApply: true
 - **Real app bug** → delegate to `bug-reporter`
 - **Test issue** → delegate to `test-writer` (propose fix, human OKs)
 
+### Coverage discovery (no ticket)
+
+- **User asks to expand coverage / find untested flows** → `explore-and-generate` → save plan to `features/explore-{page}-{flow}.feature.md` → delegate to `test-writer`
+
+### Backlog mode
+
+- **Queue provided by automation** → process each ticket in order (see Backlog mode below)
+
+## Backlog mode
+
+Work a queue of tickets instead of one. The coordinator never decides when to start — an external runner supplies the queue.
+
+### Trigger (external — not the agent)
+
+A Cursor Automation, headless `agent -p` run, or local batch script queries Jira and passes tickets in. The agent receives an ordered list; it does not poll Jira or self-trigger.
+
+**JQL (for the runner):**
+
+```
+project = DS AND status = "In Progress" AND labels != tests-generated ORDER BY rank
+```
+
+Skip any ticket that already has the `tests-generated` label.
+
+### Per-ticket loop
+
+For each ticket in the queue, in order:
+
+1. **Analyze** — read ticket via Atlassian MCP; run `jira-ticket-analyzer`; save plan to `features/{ticket_number}`
+2. **Implement** — delegate to `test-writer` (ref: playwright-conventions.mdc, pom-conventions)
+3. **Run** — `npx playwright test` (scoped to the new/changed spec when possible)
+4. **Triage on red** — delegate to `triage`; if real app bug → delegate to `bug-reporter` (human approves filing)
+5. **Ship** — open one PR per ticket; link the Jira ticket in the PR body; add the `tests-generated` label to the ticket so the next run skips it
+
+Do not merge the PR. A human merges.
+
+### Budget and stop conditions
+
+- **At most 5 tickets per run.** Stop after 5, even if the queue has more.
+- **Repeated identical failure** — if the same spec fails with the same error twice on the same ticket, stop that ticket, note the blocker in the PR or a Jira comment, and **move on** to the next ticket. Do not burn the run budget retrying.
+- **Triage can't classify** — stop that ticket and move on; escalate in output.
+- **Never merge or close** a PR or ticket without a human.
+
+### Output (end of run)
+
+Summarize per ticket: ticket key, PR URL (if opened), pass/fail/skipped, label applied or not.
+
 ## Done
 
-The suite is green for the ticket, or a bug is filed and linked.
+**Single ticket:** the suite is green for the ticket, or a bug is filed and linked.
+
+**Backlog mode:** each processed ticket has a PR (green or blocked with diagnosis), the Jira ticket is linked, and the `tests-generated` label is applied on success or after a documented blocker.
