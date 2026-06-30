@@ -28,6 +28,7 @@ jobs:
       ATLASSIAN_BASE_URL: ${{ secrets.ATLASSIAN_BASE_URL }}
       ATLASSIAN_EMAIL: ${{ secrets.ATLASSIAN_EMAIL }}
       JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
+      CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
