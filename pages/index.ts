@@ -10,5 +10,6 @@ export { SettingsPage } from './settings.page';
 export { AppNavigation } from './components/app-navigation';
 export { NewProgramModal } from './components/new-program.modal';
 export { NewSemesterModal } from './components/new-semester.modal';
+export { EditSemesterModal } from './components/edit-semester.modal';
 export { EditProgramModal } from './components/edit-program.modal';
 export { expectedDeleteMessage } from './components/delete-program.confirmation';
