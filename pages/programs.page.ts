@@ -1,6 +1,7 @@
 import type { Dialog, Locator, Page } from '@playwright/test';
 import { AppNavigation } from './components/app-navigation';
 import { EditProgramModal } from './components/edit-program.modal';
+import { NewSemesterModal } from './components/new-semester.modal';
 import { NewProgramModal } from './components/new-program.modal';
 
 function escapeRegExp(value: string): string {
@@ -22,6 +23,7 @@ export class ProgramsPage {
   readonly nav: AppNavigation;
   readonly newProgramModal: NewProgramModal;
   readonly editProgramModal: EditProgramModal;
+  readonly newSemesterModal: NewSemesterModal;
 
   constructor(private readonly page: Page) {
     this.newProgramButton = page.getByRole('button', { name: '+ New Program' });
@@ -40,6 +42,11 @@ export class ProgramsPage {
     this.nav = new AppNavigation(page);
     this.newProgramModal = new NewProgramModal(page);
     this.editProgramModal = new EditProgramModal(page);
+    this.newSemesterModal = new NewSemesterModal(page);
+  }
+
+  semesterEntry(semesterName: string): Locator {
+    return this.page.getByText(semesterName, { exact: true });
   }
 
   programRow(programName: string): Locator {
@@ -83,6 +90,17 @@ export class ProgramsPage {
       .first()
       .getByText(programName, { exact: true })
       .click();
+  }
+
+  async openNewSemester(): Promise<NewSemesterModal> {
+    await this.newSemesterButton.click();
+    return this.newSemesterModal;
+  }
+
+  async createSemester(name: string, startDate: string, endDate: string): Promise<void> {
+    const modal = await this.openNewSemester();
+    await modal.fill({ name, startDate, endDate });
+    await modal.submitCreate();
   }
 
   deleteProgramButton(row: Locator, programName: string): Locator {
