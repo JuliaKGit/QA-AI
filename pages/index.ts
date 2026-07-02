@@ -13,3 +13,4 @@ export { NewSemesterModal } from './components/new-semester.modal';
 export { EditSemesterModal } from './components/edit-semester.modal';
 export { EditProgramModal } from './components/edit-program.modal';
 export { expectedDeleteMessage } from './components/delete-program.confirmation';
+export { expectedDeleteSemesterMessage } from './components/delete-semester.confirmation';
