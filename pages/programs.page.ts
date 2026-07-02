@@ -61,7 +61,9 @@ export class ProgramsPage {
   }
 
   editButtonFor(programName: string): Locator {
-    return this.page.getByRole('button', { name: `Edit ${programName}` });
+    return this.programRow(programName)
+      .first()
+      .getByRole('button', { name: `Edit ${programName}` });
   }
 
   deleteButtonFor(programName: string): Locator {

@@ -13,7 +13,7 @@ test.describe.configure({ timeout: 60_000 });
 
 test.describe('DS-5 Program List - Display', () => {
   test('Display program list with name and description', async ({ trackProgram }) => {
-    const programName = `Web Development 2026 ${Date.now()}`;
+    const programName = `DisplayList-Web Development 2026 ${Date.now()}`;
     const description = 'Full-stack web track';
 
     await programsPage.createProgram(programName, description, trackProgram);
@@ -36,7 +36,7 @@ test.describe('DS-5 Program List - Display', () => {
   });
 
   test('Each listed program exposes Edit and Delete controls', async ({ trackProgram }) => {
-    const programName = `Web Development 2026 ${Date.now()}`;
+    const programName = `EditControls-Web Development 2026 ${Date.now()}`;
     await programsPage.createProgram(programName, 'Managed program', trackProgram);
 
     await expect(programsPage.editButtonFor(programName)).toBeVisible();
@@ -67,7 +67,7 @@ test.describe('DS-5 Program List - Empty state', () => {
   });
 
   test('Empty state is not shown while programs exist', async ({ trackProgram }) => {
-    const programName = `Web Development 2026 ${Date.now()}`;
+    const programName = `EmptyStateNotShown-Web Development 2026 ${Date.now()}`;
     await programsPage.createProgram(programName, 'Existing program', trackProgram);
 
     await expect(programsPage.programRow(programName).first()).toBeVisible();
