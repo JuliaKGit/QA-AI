@@ -1,6 +1,7 @@
 import type { Dialog, Locator, Page } from '@playwright/test';
 import { AppNavigation } from './components/app-navigation';
 import { EditProgramModal } from './components/edit-program.modal';
+import { EditSemesterModal } from './components/edit-semester.modal';
 import { NewSemesterModal } from './components/new-semester.modal';
 import { NewProgramModal } from './components/new-program.modal';
 
@@ -24,6 +25,7 @@ export class ProgramsPage {
   readonly newProgramModal: NewProgramModal;
   readonly editProgramModal: EditProgramModal;
   readonly newSemesterModal: NewSemesterModal;
+  readonly editSemesterModal: EditSemesterModal;
 
   constructor(private readonly page: Page) {
     this.newProgramButton = page.getByRole('button', { name: '+ New Program' });
@@ -43,10 +45,15 @@ export class ProgramsPage {
     this.newProgramModal = new NewProgramModal(page);
     this.editProgramModal = new EditProgramModal(page);
     this.newSemesterModal = new NewSemesterModal(page);
+    this.editSemesterModal = new EditSemesterModal(page);
   }
 
   semesterEntry(semesterName: string): Locator {
     return this.page.getByText(semesterName, { exact: true });
+  }
+
+  semesterDateText(date: string): Locator {
+    return this.page.getByText(date, { exact: true });
   }
 
   programRow(programName: string): Locator {
@@ -101,6 +108,46 @@ export class ProgramsPage {
     const modal = await this.openNewSemester();
     await modal.fill({ name, startDate, endDate });
     await modal.submitCreate();
+  }
+
+  editSemesterButton(semesterName: string): Locator {
+    return this.page
+      .locator('div')
+      .filter({ has: this.page.getByText(semesterName, { exact: true }) })
+      .getByRole('button')
+      .filter({ hasText: '✏' })
+      .first();
+  }
+
+  async openEditSemester(semesterName: string): Promise<EditSemesterModal> {
+    await this.editSemesterButton(semesterName).click();
+    await this.editSemesterModal.dialog.waitFor({ state: 'visible' });
+    return this.editSemesterModal;
+  }
+
+  deleteSemesterButton(semesterName: string): Locator {
+    return this.page
+      .locator('div')
+      .filter({ has: this.page.getByText(semesterName, { exact: true }) })
+      .getByRole('button')
+      .filter({ hasText: '🗑' })
+      .first();
+  }
+
+  async openDeleteSemesterConfirmation(semesterName: string): Promise<Dialog> {
+    const dialogPromise = this.page.waitForEvent('dialog');
+    void this.deleteSemesterButton(semesterName).click();
+    return dialogPromise;
+  }
+
+  async confirmDeleteSemester(semesterName: string): Promise<void> {
+    const dialog = await this.openDeleteSemesterConfirmation(semesterName);
+    await dialog.accept();
+  }
+
+  async cancelDeleteSemester(semesterName: string): Promise<void> {
+    const dialog = await this.openDeleteSemesterConfirmation(semesterName);
+    await dialog.dismiss();
   }
 
   deleteProgramButton(row: Locator, programName: string): Locator {
