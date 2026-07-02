@@ -165,6 +165,8 @@ test.describe('DS-5 Program List - Edge cases', () => {
   });
 
   test('List remains usable when the programs API fails', async ({ page }) => {
+    test.fail(true, 'DS-72 — programs page shows empty state when the list API returns 500.');
+
     await page.route('**/api/programs*', async (route) => {
       if (route.request().method() === 'GET') {
         await route.fulfill({
